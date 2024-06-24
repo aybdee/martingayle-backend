@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "PaymentPlan" AS ENUM ('FREE', 'BASIC_NORMAL', 'CUSTOMIZED_NORMAL', 'BASIC_PRIME', 'CUSTOMIZED_PRIME');
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "currentPlan" "PaymentPlan" NOT NULL DEFAULT 'FREE';
