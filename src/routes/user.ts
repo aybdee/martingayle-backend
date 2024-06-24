@@ -206,7 +206,7 @@ router.get("/pay/verify", verifySession, async (req, res) => {
   }
 });
 
-router.get(
+router.post(
   "/pay",
   validateRequest(PaySchema),
   verifySession,
