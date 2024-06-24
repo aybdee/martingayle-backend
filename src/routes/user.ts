@@ -10,6 +10,63 @@ import initiatePaystackPayment from "../utils/payment";
 
 const router = Router();
 
+router.get("/stats", verifySession, async (req, res) => {
+  const email = res.locals.email;
+  const user = await prisma.user.findUnique({
+    where: {
+      email: email,
+    },
+    include: {
+      StatsProfile: true,
+    },
+  });
+
+  if (!user?.StatsProfile) {
+    let newProfile = await prisma.statsProfile.create({
+      data: {
+        user: {
+          connect: {
+            id: user?.id,
+          },
+        },
+      },
+    });
+
+    res.json({
+      message: "stats",
+      data: {
+        plan: user?.currentPlan,
+        status: user?.accountStatus,
+        pendingPayment: user?.pendingPayment,
+        paymentDeadline: user?.pendingExpiry ?? "NONE",
+        stats: {
+          dailyProfit: newProfile.dailyProfit,
+          pendingSplit: newProfile.pendingSplit,
+          pendingWithdraw: newProfile.pendingWithdraw,
+          referralEarnings: newProfile.referralEarnings,
+        },
+      },
+    });
+  } else {
+    res.json({
+      message: "stats",
+      data: {
+        plan: user?.currentPlan,
+
+        status: user?.accountStatus,
+        pendingPayment: user?.pendingPayment,
+        paymentDeadline: user?.pendingExpiry ?? "NONE",
+        stats: {
+          dailyProfit: user.StatsProfile.dailyProfit,
+          pendingSplit: user.StatsProfile.pendingSplit,
+          pendingWithdraw: user.StatsProfile.pendingWithdraw,
+          referralEarnings: user.StatsProfile.referralEarnings,
+        },
+      },
+    });
+  }
+});
+
 router.get("/referrals", verifySession, async (req, res) => {
   const email = res.locals.email;
   const user = await prisma.user.findUnique({
@@ -114,6 +171,41 @@ router.post(
   }
 );
 
+router.get("/pay/verify", verifySession, async (req, res) => {
+  const email = res.locals.email;
+  const user = await prisma.user.findUnique({
+    where: {
+      email: email,
+    },
+  });
+
+  if (user?.attemptUpgradePlan == user?.currentPlan) {
+    await prisma.user.update({
+      where: {
+        email: email,
+      },
+      data: {
+        currentPlan: user?.attemptUpgradePlan,
+        attemptUpgradePlan: null,
+      },
+    });
+
+    res.json({
+      message: "VERIFIED",
+    });
+  } else {
+    if (user?.attemptUpgradePlan) {
+      res.json({
+        message: "PENDING",
+      });
+    } else {
+      res.json({
+        message: "NONE_PENDING",
+      });
+    }
+  }
+});
+
 router.get(
   "/pay",
   validateRequest(PaySchema),
@@ -130,6 +222,15 @@ router.get(
         email: true,
         firstname: true,
         lastname: true,
+      },
+    });
+
+    await prisma.user.update({
+      where: {
+        email: email,
+      },
+      data: {
+        attemptUpgradePlan: plan,
       },
     });
 

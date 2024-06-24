@@ -39,23 +39,34 @@ enum TransactionStatus {
   FAILED
 }
 
+enum AccountStatus {
+  ACTIVE
+  PENDING
+  SUSPENDED
+}
+
 model User {
-  id              Int               @id @default(autoincrement())
-  email           String            @unique
-  username        String            @unique
-  firstname       String
-  lastname        String
-  password        String
-  currentPlan     PaymentPlan       @default(FREE)
-  refereeId       Int?
-  referee         User?             @relation("Referrals", fields: [refereeId], references: [id])
-  referrals       User[]            @relation("Referrals")
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  sportyProfile   SportyProfile?
-  botSession      BotSession?
-  BetLogs         BetLogs[]
-  TransactionLogs TransactionLogs[]
+  id                 Int               @id @default(autoincrement())
+  email              String            @unique
+  username           String            @unique
+  firstname          String
+  lastname           String
+  password           String
+  currentPlan        PaymentPlan       @default(FREE)
+  attemptUpgradePlan PaymentPlan?
+  refereeId          Int?
+  referee            User?             @relation("Referrals", fields: [refereeId], references: [id])
+  referrals          User[]            @relation("Referrals")
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  sportyProfile      SportyProfile?
+  botSession         BotSession?
+  BetLogs            BetLogs[]
+  TransactionLogs    TransactionLogs[]
+  StatsProfile       StatsProfile?
+  accountStatus      AccountStatus     @default(ACTIVE)
+  pendingPayment     Float             @default(0)
+  pendingExpiry      DateTime?
 }
 
 model SportyProfile {
@@ -91,4 +102,14 @@ model TransactionLogs {
   type      TransactionType
   status    TransactionStatus
   createdAt DateTime          @default(now())
+}
+
+model StatsProfile {
+  id               Int   @id @default(autoincrement())
+  userId           Int   @unique
+  user             User  @relation(fields: [userId], references: [id])
+  dailyProfit      Float @default(0)
+  pendingSplit     Float @default(0)
+  pendingWithdraw  Float @default(0)
+  referralEarnings Float @default(0)
 }
