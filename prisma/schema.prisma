@@ -22,20 +22,40 @@ enum PaymentPlan {
   CUSTOMIZED_PRIME
 }
 
+enum BotState {
+  ACTIVE
+  INACTIVE
+}
+
+enum TransactionType {
+  BOT_SESION
+  BOT_SESSION_PAYMENT
+  REFERRAL_INCOMING
+}
+
+enum TransactionStatus {
+  VERIFIED
+  PENDING
+  FAILED
+}
+
 model User {
-  id            Int            @id @default(autoincrement())
-  email         String         @unique
-  username      String         @unique
-  firstname     String
-  lastname      String
-  password      String
-  currentPlan   PaymentPlan    @default(FREE)
-  refereeId     Int?
-  referee       User?          @relation("Referrals", fields: [refereeId], references: [id])
-  referrals     User[]         @relation("Referrals")
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  sportyProfile SportyProfile?
+  id              Int               @id @default(autoincrement())
+  email           String            @unique
+  username        String            @unique
+  firstname       String
+  lastname        String
+  password        String
+  currentPlan     PaymentPlan       @default(FREE)
+  refereeId       Int?
+  referee         User?             @relation("Referrals", fields: [refereeId], references: [id])
+  referrals       User[]            @relation("Referrals")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  sportyProfile   SportyProfile?
+  botSession      BotSession?
+  BetLogs         BetLogs[]
+  TransactionLogs TransactionLogs[]
 }
 
 model SportyProfile {
@@ -44,4 +64,31 @@ model SportyProfile {
   password String
   userId   Int    @unique
   user     User   @relation(fields: [userId], references: [id])
+}
+
+model BotSession {
+  id            Int      @id @default(autoincrement())
+  userId        Int?     @unique
+  state         BotState @default(INACTIVE)
+  currentAmount Float    @default(0)
+  user          User?    @relation(fields: [userId], references: [id])
+}
+
+model BetLogs {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  betAmount Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TransactionLogs {
+  id        Int               @id @default(autoincrement())
+  userId    Int
+  user      User              @relation(fields: [userId], references: [id])
+  amount    Float
+  type      TransactionType
+  status    TransactionStatus
+  createdAt DateTime          @default(now())
 }

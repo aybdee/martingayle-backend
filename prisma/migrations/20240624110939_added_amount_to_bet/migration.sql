@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "BotSession" ADD COLUMN     "currentAmount" DOUBLE PRECISION NOT NULL DEFAULT 0;

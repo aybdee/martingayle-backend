@@ -2,6 +2,7 @@ import express from "express";
 import http from "http";
 import authRouter from "./routes/auth";
 import userRouter from "./routes/user";
+import logsRouter from "./routes/logs";
 import webhookRouter from "./routes/webhook";
 import bodyParser from "body-parser";
 import { Server } from "socket.io";
@@ -26,10 +27,11 @@ const initServer = async () => {
   app.use("/user", userRouter);
   app.use("/webhook", webhookRouter);
   app.use("/bot", botRouter(io));
+  app.use("/logs", logsRouter);
 
   app.use(errorHandler);
 
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
   });
 };
