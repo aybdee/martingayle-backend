@@ -10,7 +10,7 @@ import initiatePaystackPayment from "../utils/payment";
 
 const router = Router();
 
-router.get("/stats", verifySession, async (req, res) => {
+router.get("/", verifySession, async (req, res) => {
   const email = res.locals.email;
   const user = await prisma.user.findUnique({
     where: {
@@ -18,10 +18,13 @@ router.get("/stats", verifySession, async (req, res) => {
     },
     include: {
       StatsProfile: true,
+      sportyProfile: true,
     },
   });
 
-  if (!user?.StatsProfile) {
+  let stats = user?.StatsProfile;
+
+  if (!stats) {
     let newProfile = await prisma.statsProfile.create({
       data: {
         user: {
@@ -32,21 +35,7 @@ router.get("/stats", verifySession, async (req, res) => {
       },
     });
 
-    res.json({
-      message: "stats",
-      data: {
-        plan: user?.currentPlan,
-        status: user?.accountStatus,
-        pendingPayment: user?.pendingPayment,
-        paymentDeadline: user?.pendingExpiry ?? "NONE",
-        stats: {
-          dailyProfit: newProfile.dailyProfit,
-          pendingSplit: newProfile.pendingSplit,
-          pendingWithdraw: newProfile.pendingWithdraw,
-          referralEarnings: newProfile.referralEarnings,
-        },
-      },
-    });
+    stats = newProfile;
   } else {
     res.json({
       message: "stats",
@@ -56,11 +45,17 @@ router.get("/stats", verifySession, async (req, res) => {
         status: user?.accountStatus,
         pendingPayment: user?.pendingPayment,
         paymentDeadline: user?.pendingExpiry ?? "NONE",
+        sportyProfile: user?.sportyProfile
+          ? {
+              phone: user?.sportyProfile?.phone,
+              password: user?.sportyProfile?.password,
+            }
+          : {},
         stats: {
-          dailyProfit: user.StatsProfile.dailyProfit,
-          pendingSplit: user.StatsProfile.pendingSplit,
-          pendingWithdraw: user.StatsProfile.pendingWithdraw,
-          referralEarnings: user.StatsProfile.referralEarnings,
+          dailyProfit: stats.dailyProfit,
+          pendingSplit: stats.pendingSplit,
+          pendingWithdraw: stats.pendingWithdraw,
+          referralEarnings: stats.referralEarnings,
         },
       },
     });
