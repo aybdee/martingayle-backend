@@ -1,6 +1,7 @@
 import { Router } from "express";
 import "express-async-errors";
 import crypto from "crypto";
+import prisma from "../utils/prisma";
 let router = Router();
 
 router.post("/", async (req, res) => {
@@ -14,7 +15,29 @@ router.post("/", async (req, res) => {
     console.log(eventData);
 
     if (eventData.event == "charge.success") {
-      console.log("Payment successful");
+      let email = eventData.data.customer.email;
+      let plan = eventData.data.plan.name;
+      await prisma.user.update({
+        where: {
+          email: email,
+        },
+        data: {
+          currentPlan: plan,
+        },
+      });
+
+      res.sendStatus(200);
+    } else if (eventData.event == "subscription.disable") {
+      let email = eventData.data.customer.email;
+      await prisma.user.update({
+        where: {
+          email: email,
+        },
+        data: {
+          currentPlan: "FREE",
+        },
+      });
+      res.send(200);
     }
   }
 });
