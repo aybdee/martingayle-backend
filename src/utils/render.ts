@@ -69,7 +69,14 @@ export async function deleteWorkerInstance() {
 export async function intializeWorkers() {
   try {
     await axios.post(
-      `https://api.render.com/v1/services/${RENDER_SERVICE_ID}/resume`
+      `https://api.render.com/v1/services/${RENDER_SERVICE_ID}/resume`,
+
+      {
+        headers: {
+          Authorization: `Bearer ${RENDER_API_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
     );
   } catch (err) {
     console.error("Error initializing workers:", err);
@@ -92,7 +99,14 @@ export async function spinDownWorkers() {
     );
 
     await axios.post(
-      `https://api.render.com/v1/services/${RENDER_SERVICE_ID}/suspend`
+      `https://api.render.com/v1/services/${RENDER_SERVICE_ID}/suspend`,
+
+      {
+        headers: {
+          Authorization: `Bearer ${RENDER_API_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
     );
   } catch (error) {
     console.error("Error spinning down worker instance:", error);
