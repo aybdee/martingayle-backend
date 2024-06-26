@@ -65,7 +65,7 @@ router.get("/bets/:logNum", verifySession, async (req, res) => {
   });
 
   res.json({
-    message: "transaction logs",
+    message: "bet logs",
     data: bets.map((bet) => {
       return {
         amount: bet.betAmount,
