@@ -66,23 +66,6 @@ export async function deleteWorkerInstance() {
   }
 }
 
-export async function intializeWorkers() {
-  try {
-    await axios.post(
-      `https://api.render.com/v1/services/${RENDER_SERVICE_ID}/resume`,
-
-      {
-        headers: {
-          Authorization: `Bearer ${RENDER_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  } catch (err) {
-    console.error("Error initializing workers:", err);
-  }
-}
-
 export async function spinDownWorkers() {
   try {
     const response = await axios.post(
@@ -90,17 +73,6 @@ export async function spinDownWorkers() {
       {
         numInstances: 1,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${RENDER_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    await axios.post(
-      `https://api.render.com/v1/services/${RENDER_SERVICE_ID}/suspend`,
-
       {
         headers: {
           Authorization: `Bearer ${RENDER_API_TOKEN}`,

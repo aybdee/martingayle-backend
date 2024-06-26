@@ -10,7 +10,7 @@ import { errorHandler } from "./middleware/error.middleware";
 import botRouter from "./routes/bot";
 import cors from "cors";
 import dotenv from "dotenv";
-import { spinDownWorkers, intializeWorkers } from "./utils/render";
+import { spinDownWorkers } from "./utils/render";
 import { deleteAllBotSessions } from "./utils/prisma";
 
 const PORT = 4000;
@@ -38,8 +38,6 @@ const initServer = async () => {
   server.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
   });
-
-  await intializeWorkers();
 };
 
 initServer();
