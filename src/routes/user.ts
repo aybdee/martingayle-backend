@@ -7,11 +7,12 @@ import { PaySchema } from "../schemas/payment";
 import { z } from "zod";
 import { SportyProfile } from "../schemas/sporty";
 import initiatePaystackPayment from "../utils/payment";
-
+import { createWorkerInstance } from "../utils/render";
 const router = Router();
 
 router.get("/", verifySession, async (req, res) => {
   const email = res.locals.email;
+  await createWorkerInstance();
   const user = await prisma.user.findUnique({
     where: {
       email: email,
@@ -166,41 +167,6 @@ router.post(
   }
 );
 
-router.get("/pay/verify", verifySession, async (req, res) => {
-  const email = res.locals.email;
-  const user = await prisma.user.findUnique({
-    where: {
-      email: email,
-    },
-  });
-
-  if (user?.attemptUpgradePlan == user?.currentPlan) {
-    await prisma.user.update({
-      where: {
-        email: email,
-      },
-      data: {
-        currentPlan: user?.attemptUpgradePlan,
-        attemptUpgradePlan: null,
-      },
-    });
-
-    res.json({
-      message: "VERIFIED",
-    });
-  } else {
-    if (user?.attemptUpgradePlan) {
-      res.json({
-        message: "PENDING",
-      });
-    } else {
-      res.json({
-        message: "NONE_PENDING",
-      });
-    }
-  }
-});
-
 router.post(
   "/pay",
   validateRequest(PaySchema),
@@ -208,15 +174,6 @@ router.post(
   async (req, res) => {
     const email = res.locals.email;
     const { plan } = req.body as z.infer<typeof PaySchema>;
-
-    await prisma.user.update({
-      where: {
-        email: email,
-      },
-      data: {
-        attemptUpgradePlan: plan,
-      },
-    });
 
     const paymentResponse = await initiatePaystackPayment(email, plan);
 

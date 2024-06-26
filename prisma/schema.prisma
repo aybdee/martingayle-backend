@@ -46,27 +46,26 @@ enum AccountStatus {
 }
 
 model User {
-  id                 Int               @id @default(autoincrement())
-  email              String            @unique
-  username           String            @unique
-  firstname          String
-  lastname           String
-  password           String
-  currentPlan        PaymentPlan       @default(FREE)
-  attemptUpgradePlan PaymentPlan?
-  refereeId          Int?
-  referee            User?             @relation("Referrals", fields: [refereeId], references: [id])
-  referrals          User[]            @relation("Referrals")
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  sportyProfile      SportyProfile?
-  botSession         BotSession?
-  BetLogs            BetLogs[]
-  TransactionLogs    TransactionLogs[]
-  StatsProfile       StatsProfile?
-  accountStatus      AccountStatus     @default(ACTIVE)
-  pendingPayment     Float             @default(0)
-  pendingExpiry      DateTime?
+  id              Int               @id @default(autoincrement())
+  email           String            @unique
+  username        String            @unique
+  firstname       String
+  lastname        String
+  password        String
+  currentPlan     PaymentPlan       @default(FREE)
+  refereeId       Int?
+  referee         User?             @relation("Referrals", fields: [refereeId], references: [id])
+  referrals       User[]            @relation("Referrals")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  sportyProfile   SportyProfile?
+  botSession      BotSession?
+  BetLogs         BetLogs[]
+  TransactionLogs TransactionLogs[]
+  StatsProfile    StatsProfile?
+  accountStatus   AccountStatus     @default(ACTIVE)
+  pendingPayment  Float             @default(0)
+  pendingExpiry   DateTime?
 }
 
 model SportyProfile {
