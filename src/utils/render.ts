@@ -66,7 +66,17 @@ export async function deleteWorkerInstance() {
   }
 }
 
-export async function scaleDownWorkers() {
+export async function intializeWorkers() {
+  try {
+    await axios.post(
+      `https://api.render.com/v1/services/${RENDER_SERVICE_ID}/resume`
+    );
+  } catch (err) {
+    console.error("Error initializing workers:", err);
+  }
+}
+
+export async function spinDownWorkers() {
   try {
     const response = await axios.post(
       `https://api.render.com/v1/services/${RENDER_SERVICE_ID}/scale`,
@@ -81,8 +91,10 @@ export async function scaleDownWorkers() {
       }
     );
 
-    console.log("New worker instance created:", response.data);
+    await axios.post(
+      `https://api.render.com/v1/services/${RENDER_SERVICE_ID}/suspend`
+    );
   } catch (error) {
-    console.error("Error creating worker instance:", error);
+    console.error("Error spinning down worker instance:", error);
   }
 }
