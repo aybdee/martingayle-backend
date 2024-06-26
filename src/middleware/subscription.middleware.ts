@@ -22,7 +22,8 @@ export function validateSubscription(
     });
 
     let planRank = subscriptionrank[subscription];
-    if (planRank >= subscriptionrank[user?.currentPlan!]) {
+    console.log(user?.currentPlan);
+    if (planRank > subscriptionrank[user?.currentPlan!]) {
       return res
         .status(403)
         .json({ error: `${subscription} Subscription required` });
