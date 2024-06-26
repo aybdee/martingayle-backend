@@ -22,14 +22,33 @@ async function getAvailableClient() {
 
 export default (io: Server) => {
   io.on("connection", async (socket) => {
-    const newBotSession = await prisma.botSession.create({
-      data: {
-        state: "INACTIVE",
+    const ip = socket.handshake.address;
+    const existingBot = await prisma.botSession.findUnique({
+      where: {
+        id: ip,
       },
     });
-    console.log(`device ${newBotSession.id} connected`);
 
-    socket.emit("acknowledge", { id: newBotSession.id });
+    if (existingBot) {
+      await prisma.botSession.update({
+        where: {
+          id: ip,
+        },
+        data: {
+          state: "INACTIVE",
+        },
+      });
+    } else {
+      const newBotSession = await prisma.botSession.create({
+        data: {
+          state: "INACTIVE",
+          id: ip,
+        },
+      });
+      console.log(`device ${newBotSession.id} connected`);
+    }
+
+    socket.emit("acknowledge", { id: ip });
 
     socket.on("current_amount", async (data) => {
       const { id, amount } = data;
