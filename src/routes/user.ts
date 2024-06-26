@@ -208,17 +208,6 @@ router.post(
   async (req, res) => {
     const email = res.locals.email;
     const { plan } = req.body as z.infer<typeof PaySchema>;
-    const user = await prisma.user.findUnique({
-      where: {
-        email: email,
-      },
-
-      select: {
-        email: true,
-        firstname: true,
-        lastname: true,
-      },
-    });
 
     await prisma.user.update({
       where: {
@@ -239,21 +228,5 @@ router.post(
     });
   }
 );
-
-router.get("/", verifySession, async (req, res) => {
-  const email = res.locals.email;
-  const user = await prisma.user.findUnique({
-    where: {
-      email: email,
-    },
-
-    select: {
-      email: true,
-      firstname: true,
-      lastname: true,
-    },
-  });
-  res.json(user);
-});
 
 export default router;

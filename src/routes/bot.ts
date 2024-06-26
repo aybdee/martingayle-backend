@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { Server } from "socket.io";
 import { Client, ClientState } from "../types/bot";
 import { verifySession } from "../middleware/auth.middleware";
+import { validateSubscription } from "../middleware/subscription.middleware";
 import prisma from "../utils/prisma";
 
 const router = Router();
@@ -112,54 +113,116 @@ export default (io: Server) => {
     return res.status(404).json({ error: "User has no running bet session" });
   });
 
-  router.post("/start", verifySession, async (req: Request, res: Response) => {
-    const email = res.locals.email;
+  router.post(
+    "/start",
+    verifySession,
+    validateSubscription("BASIC_NORMAL"),
+    async (req: Request, res: Response) => {
+      const email = res.locals.email;
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email: email,
-      },
+      const user = await prisma.user.findUnique({
+        where: {
+          email: email,
+        },
 
-      include: {
-        sportyProfile: true,
-      },
-    });
+        include: {
+          sportyProfile: true,
+        },
+      });
 
-    if (!user?.sportyProfile) {
-      return res
-        .status(400)
-        .json({ error: "user does not have a sporty profile" });
-    } else {
-      const availableClient = await getAvailableClient();
-      if (availableClient !== null) {
-        io.emit("start_betting", {
-          id: availableClient.id,
-          username: user.sportyProfile.phone,
-          password: user.sportyProfile.password,
-        });
-
-        await prisma.botSession.update({
-          where: {
-            id: availableClient.id,
-          },
-          data: {
-            state: "ACTIVE",
-            user: {
-              connect: {
-                id: user.id,
-              },
-            },
-          },
-        });
-
-        return res.status(200).json({ message: "started bot" });
-      } else {
+      if (!user?.sportyProfile) {
         return res
           .status(400)
-          .json({ error: "No Clients currently available" });
+          .json({ error: "user does not have a sporty profile" });
+      } else {
+        const availableClient = await getAvailableClient();
+        if (availableClient !== null) {
+          io.emit("start_betting", {
+            id: availableClient.id,
+            username: user.sportyProfile.phone,
+            password: user.sportyProfile.password,
+          });
+
+          await prisma.botSession.update({
+            where: {
+              id: availableClient.id,
+            },
+            data: {
+              state: "ACTIVE",
+              user: {
+                connect: {
+                  id: user.id,
+                },
+              },
+            },
+          });
+
+          return res.status(200).json({ message: "started bot" });
+        } else {
+          return res
+            .status(400)
+            .json({ error: "No Clients currently available" });
+        }
       }
     }
-  });
+  );
+
+  router.post(
+    "/start/:max_loss",
+    verifySession,
+    validateSubscription("CUSTOMIZED_NORMAL"),
+    async (req: Request, res: Response) => {
+      const email = res.locals.email;
+
+      const user = await prisma.user.findUnique({
+        where: {
+          email: email,
+        },
+
+        include: {
+          sportyProfile: true,
+        },
+      });
+
+      if (!user?.sportyProfile) {
+        return res
+          .status(400)
+          .json({ error: "user does not have a sporty profile" });
+      } else {
+        const availableClient = await getAvailableClient();
+        if (availableClient !== null) {
+          io.emit("start_betting", {
+            id: availableClient.id,
+            username: user.sportyProfile.phone,
+            password: user.sportyProfile.password,
+            config: {
+              max_loss: parseInt(req.params.max_loss),
+            },
+          });
+
+          await prisma.botSession.update({
+            where: {
+              id: availableClient.id,
+            },
+            data: {
+              state: "ACTIVE",
+              user: {
+                connect: {
+                  id: user.id,
+                },
+              },
+            },
+          });
+
+          return res.status(200).json({ message: "started bot" });
+        } else {
+          return res
+            .status(400)
+            .json({ error: "No Clients currently available" });
+        }
+      }
+    }
+  );
 
   return router;
 };

@@ -2,6 +2,7 @@ import { Router } from "express";
 import "express-async-errors";
 import crypto from "crypto";
 import prisma from "../utils/prisma";
+import { createWorkerInstance, deleteWorkerInstance } from "../utils/render";
 let router = Router();
 
 router.post("/", async (req, res) => {
@@ -17,6 +18,8 @@ router.post("/", async (req, res) => {
     if (eventData.event == "charge.success") {
       let email = eventData.data.customer.email;
       let plan = eventData.data.plan.name;
+      //send acknowledge before performing any operations to avoid multiple requests
+      res.sendStatus(200);
       await prisma.user.update({
         where: {
           email: email,
@@ -26,9 +29,11 @@ router.post("/", async (req, res) => {
         },
       });
 
-      res.sendStatus(200);
+      // Create a new worker instance
+      await createWorkerInstance();
     } else if (eventData.event == "subscription.disable") {
       let email = eventData.data.customer.email;
+      res.sendStatus(200);
       await prisma.user.update({
         where: {
           email: email,
@@ -37,7 +42,7 @@ router.post("/", async (req, res) => {
           currentPlan: "FREE",
         },
       });
-      res.send(200);
+      await deleteWorkerInstance();
     }
   }
 });

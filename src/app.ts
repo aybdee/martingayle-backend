@@ -8,14 +8,18 @@ import bodyParser from "body-parser";
 import { Server } from "socket.io";
 import { errorHandler } from "./middleware/error.middleware";
 import botRouter from "./routes/bot";
-
 import cors from "cors";
 import dotenv from "dotenv";
+import { scaleDownWorkers } from "./utils/render";
+import { deleteAllBotSessions } from "./utils/prisma";
 
 const PORT = 4000;
 dotenv.config();
 
 const initServer = async () => {
+  await deleteAllBotSessions();
+  await scaleDownWorkers();
+
   const app = express();
   const server = http.createServer(app);
   const io = new Server(server);
