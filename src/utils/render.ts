@@ -70,7 +70,7 @@ export async function intializeWorkers() {
   try {
     await axios.post(
       `https://api.render.com/v1/services/${RENDER_SERVICE_ID}/resume`,
-      {},
+
       {
         headers: {
           Authorization: `Bearer ${RENDER_API_TOKEN}`,
@@ -100,7 +100,6 @@ export async function spinDownWorkers() {
 
     await axios.post(
       `https://api.render.com/v1/services/${RENDER_SERVICE_ID}/suspend`,
-      {},
 
       {
         headers: {
