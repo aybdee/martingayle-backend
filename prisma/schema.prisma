@@ -78,7 +78,7 @@ model SportyProfile {
 }
 
 model BotSession {
-  id            String   @id
+  id            Int      @id @default(autoincrement())
   userId        Int?     @unique
   state         BotState @default(INACTIVE)
   currentAmount Float    @default(0)
