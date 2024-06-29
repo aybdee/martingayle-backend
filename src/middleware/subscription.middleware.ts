@@ -1,17 +1,10 @@
 import { RequestHandler } from "express";
 import { Subscription } from "../types/api";
 import prisma from "../utils/prisma";
-
-let subscriptionrank = {
-  FREE: 0,
-  BASIC_NORMAL: 1,
-  CUSTOMIZED_NORMAL: 2,
-  BASIC_PRIME: 3,
-  CUSTOMIZED_PRIME: 4,
-};
+import { $Enums } from "@prisma/client";
 
 export function validateSubscription(
-  subscription: Subscription
+  validSubscriptions: $Enums.PaymentPlan[]
 ): RequestHandler {
   return async (req, res, next) => {
     let email = res.locals.email;
@@ -21,12 +14,9 @@ export function validateSubscription(
       },
     });
 
-    let planRank = subscriptionrank[subscription];
     console.log(user?.currentPlan);
-    if (planRank > subscriptionrank[user?.currentPlan!]) {
-      return res
-        .status(403)
-        .json({ error: `${subscription} Subscription required` });
+    if (validSubscriptions.includes(user?.currentPlan!)) {
+      return res.status(403).json({ error: `Subscription required` });
     } else {
       next();
     }

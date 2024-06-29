@@ -1,3 +1,4 @@
+import { $Enums } from "@prisma/client";
 import axios from "axios";
 
 const PAYMENT_PLANS = {

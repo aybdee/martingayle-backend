@@ -131,11 +131,15 @@ export default (io: Server) => {
     }
     return res.status(404).json({ error: "User has no running bet session" });
   });
-
   router.post(
     "/start",
     verifySession,
-    validateSubscription("BASIC_NORMAL"),
+    validateSubscription([
+      "BASIC_NORMAL",
+      "BASIC_PRIME",
+      "CUSTOMIZED_NORMAL",
+      "CUSTOMIZED_PRIME",
+    ]),
     async (req: Request, res: Response) => {
       const email = res.locals.email;
 
@@ -189,7 +193,7 @@ export default (io: Server) => {
   router.post(
     "/start/:max_loss",
     verifySession,
-    validateSubscription("CUSTOMIZED_NORMAL"),
+    validateSubscription(["CUSTOMIZED_NORMAL", "CUSTOMIZED_PRIME"]),
     async (req: Request, res: Response) => {
       const email = res.locals.email;
 
