@@ -4,6 +4,7 @@ import { validateRequest } from "../middleware/validation.middleware";
 import { verifySession } from "../middleware/auth.middleware";
 import prisma from "../utils/prisma";
 import { z } from "zod";
+import { $Enums } from "@prisma/client";
 
 let router = Router();
 
@@ -28,17 +29,42 @@ router.get("/transactions/:logNum", verifySession, async (req, res) => {
       createdAt: "desc",
     },
   });
+  let transaction_data = transactions.map((transaction) => {
+    return {
+      amount: transaction.amount,
+      type: transaction.type,
+      date: transaction.createdAt,
+      status: transaction.status,
+    };
+  });
+
+  transaction_data = [
+    ...transaction_data,
+    ...[
+      {
+        amount: 1000,
+        type: $Enums.TransactionType.BOT_SESION,
+        date: new Date(),
+        status: $Enums.TransactionStatus.VERIFIED,
+      },
+      {
+        amount: 1000,
+        type: $Enums.TransactionType.BOT_SESSION_PAYMENT,
+        date: new Date(),
+        status: $Enums.TransactionStatus.PENDING,
+      },
+      {
+        amount: 1000,
+        type: $Enums.TransactionType.REFERRAL_INCOMING,
+        date: new Date(),
+        status: $Enums.TransactionStatus.FAILED,
+      },
+    ],
+  ];
 
   res.json({
     message: "transaction logs",
-    data: transactions.map((transaction) => {
-      return {
-        amount: transaction.amount,
-        type: transaction.type,
-        date: transaction.createdAt,
-        status: transaction.status,
-      };
-    }),
+    data: transaction_data,
   });
 });
 

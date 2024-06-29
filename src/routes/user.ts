@@ -42,7 +42,7 @@ router.get("/", verifySession, async (req, res) => {
       message: "stats",
       data: {
         plan: user?.currentPlan,
-
+        email: user?.email,
         status: user?.accountStatus,
         pendingPayment: user?.pendingPayment,
         paymentDeadline: user?.pendingExpiry ?? "NONE",
