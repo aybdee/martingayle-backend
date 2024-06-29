@@ -115,21 +115,25 @@ export default (io: Server) => {
   });
 
   router.get("/amount", verifySession, async (req: Request, res: Response) => {
-    const email = res.locals.email;
-    const client = await prisma.botSession.findFirst({
-      where: {
-        user: {
-          email: email,
-        },
-      },
+    return res.status(200).json({
+      message: "current amount",
+      data: { amount: 0 },
     });
-    if (client) {
-      return res.status(200).json({
-        message: "current amount",
-        data: { amount: client.currentAmount },
-      });
-    }
-    return res.status(404).json({ error: "User has no running bet session" });
+    // const email = res.locals.email;
+    // const client = await prisma.botSession.findFirst({
+    //   where: {
+    //     user: {
+    //       email: email,
+    //     },
+    //   },
+    // });
+    // if (client) {
+    //   return res.status(200).json({
+    //     message: "current amount",
+    //     data: { amount: client.currentAmount },
+    //   });
+    // }
+    // return res.status(404).json({ error: "User has no running bet session" });
   });
   router.post(
     "/start",
