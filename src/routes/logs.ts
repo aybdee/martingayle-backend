@@ -90,14 +90,33 @@ router.get("/bets/:logNum", verifySession, async (req, res) => {
     },
   });
 
+  let bets_data = bets.map((bet) => {
+    return {
+      amount: bet.betAmount,
+      date: bet.createdAt,
+    };
+  });
+  bets_data = [
+    ...bets_data,
+    ...[
+      {
+        amount: 1000,
+        date: new Date(),
+      },
+      {
+        amount: 1000,
+        date: new Date(),
+      },
+      {
+        amount: 1000,
+        date: new Date(),
+      },
+    ],
+  ];
+
   res.json({
     message: "bet logs",
-    data: bets.map((bet) => {
-      return {
-        amount: bet.betAmount,
-        date: bet.createdAt,
-      };
-    }),
+    data: bets_data,
   });
 });
 
