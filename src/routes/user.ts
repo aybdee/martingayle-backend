@@ -6,7 +6,7 @@ import prisma from "../utils/prisma";
 import { PaySchema } from "../schemas/payment";
 import { z } from "zod";
 import { SportyProfile } from "../schemas/sporty";
-import initiatePaystackPayment from "../utils/payment";
+import { initiatePaystackPayment } from "../utils/payment";
 import { createWorkerInstance } from "../utils/render";
 const router = Router();
 
@@ -55,7 +55,6 @@ router.get("/", verifySession, async (req, res) => {
         stats: {
           dailyProfit: stats.dailyProfit,
           pendingSplit: stats.pendingSplit,
-          pendingWithdraw: stats.pendingWithdraw,
           referralEarnings: stats.referralEarnings,
         },
       },

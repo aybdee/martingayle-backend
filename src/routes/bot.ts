@@ -13,13 +13,18 @@ const router = Router();
 
 router.post("/stop", verifySession, async (req: Request, res: Response) => {
   const email = res.locals.email;
-  const session = await prisma.botSession.findFirst({
+
+  const user = await prisma.user.findUnique({
     where: {
-      user: {
-        email: email,
-      },
+      email: email,
+    },
+    include: {
+      botSession: true,
     },
   });
+
+  const session = user?.botSession;
+
   if (session) {
     await client.lPush(
       "bet_queue",
@@ -28,6 +33,18 @@ router.post("/stop", verifySession, async (req: Request, res: Response) => {
         username: session.phone,
       })
     );
+
+    // await prisma.user.update({
+    //   where: {
+    //     email: email,
+    //   },
+    //   data: {
+    //     StatsProfile:{
+    //       update:
+
+    //     }
+    //   },
+    // });
 
     await prisma.botSession.delete({
       where: {

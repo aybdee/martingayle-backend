@@ -1,4 +1,3 @@
-import { $Enums } from "@prisma/client";
 import axios from "axios";
 
 const PAYMENT_PLANS = {
@@ -15,7 +14,7 @@ const PAYMENT_PLANS_TEST = {
   CUSTOMIZED_PRIME: { code: "PLN_8aenmht8sak8wz6", amount: 50000 },
 };
 
-export default async function initiatePaystackPayment(
+export async function initiatePaystackPayment(
   email: string,
   plan: keyof typeof PAYMENT_PLANS
 ) {

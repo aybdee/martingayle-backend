@@ -99,11 +99,12 @@ model TransactionLogs {
 }
 
 model StatsProfile {
-  id               Int   @id @default(autoincrement())
-  userId           Int   @unique
-  user             User  @relation(fields: [userId], references: [id])
-  dailyProfit      Float @default(0)
-  pendingSplit     Float @default(0)
-  pendingWithdraw  Float @default(0)
-  referralEarnings Float @default(0)
+  id               Int       @id @default(autoincrement())
+  userId           Int       @unique
+  user             User      @relation(fields: [userId], references: [id])
+  dailyProfit      Float     @default(0)
+  pendingSplit     Float     @default(0)
+  referralEarnings Float     @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime? @updatedAt
 }
