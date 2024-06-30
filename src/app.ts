@@ -12,6 +12,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { spinDownWorkers } from "./utils/render";
 import { deleteAllBotSessions } from "./utils/prisma";
+import { pollQueueUpdates } from "./utils/bot";
+import { client } from "./utils/redis";
 
 const PORT = 4000;
 dotenv.config();
@@ -21,8 +23,7 @@ const initServer = async () => {
   await spinDownWorkers();
 
   const app = express();
-  const server = http.createServer(app);
-  const io = new Server(server);
+  client.connect();
 
   app.use(cors());
   app.use(bodyParser.json());
@@ -30,14 +31,16 @@ const initServer = async () => {
   app.use("/auth", authRouter);
   app.use("/user", userRouter);
   app.use("/webhook", webhookRouter);
-  app.use("/bot", botRouter(io));
+  app.use("/bot", botRouter);
   app.use("/logs", logsRouter);
 
   app.use(errorHandler);
 
-  server.listen(PORT, () => {
+  app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
   });
+
+  await pollQueueUpdates();
 };
 
 initServer();

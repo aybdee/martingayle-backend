@@ -2,254 +2,124 @@ import { Router, Request, Response } from "express";
 import { Server } from "socket.io";
 import { Client, ClientState } from "../types/bot";
 import { verifySession } from "../middleware/auth.middleware";
-import { validateSubscription } from "../middleware/subscription.middleware";
+import { validateRequest } from "../middleware/validation.middleware";
+import { validateSubscription } from "../utils/subscription";
+import { StartBotSchema } from "../schemas/bot";
 import prisma from "../utils/prisma";
-
+import { z } from "zod";
+import { Subscription } from "../types/api";
+import { client } from "../utils/redis";
 const router = Router();
 
-async function getAvailableClient() {
-  let availableClient = await prisma.botSession.findFirst({
+router.post("/stop", verifySession, async (req: Request, res: Response) => {
+  const email = res.locals.email;
+  const session = await prisma.botSession.findFirst({
     where: {
-      state: "INACTIVE",
+      user: {
+        email: email,
+      },
     },
   });
-  if (availableClient) {
-    return availableClient;
+  if (session) {
+    await client.lPush(
+      "bet_queue",
+      JSON.stringify({
+        command: "stop",
+        username: session.phone,
+      })
+    );
+
+    await prisma.botSession.delete({
+      where: {
+        phone: session.phone,
+      },
+    });
+    return res.status(200).json({ message: "bot stopped" });
   } else {
-    return null;
+    return res.status(404).json({ error: "User has no running bot session" });
   }
-}
+});
 
-export default (io: Server) => {
-  io.on("connection", async (socket) => {
-    const ip = socket.handshake.address;
-    const existingBot = await prisma.botSession.findUnique({
-      where: {
-        id: ip,
+router.get("/amount", verifySession, async (req: Request, res: Response) => {
+  const email = res.locals.email;
+  const session = await prisma.botSession.findFirst({
+    where: {
+      user: {
+        email: email,
       },
-    });
-
-    if (existingBot) {
-      await prisma.botSession.update({
-        where: {
-          id: ip,
-        },
-        data: {
-          state: "INACTIVE",
-        },
-      });
-    } else {
-      const newBotSession = await prisma.botSession.create({
-        data: {
-          state: "INACTIVE",
-          id: ip,
-        },
-      });
-      console.log(`device ${newBotSession.id} connected`);
-    }
-
-    socket.emit("acknowledge", { id: ip });
-
-    socket.on("current_amount", async (data) => {
-      const { id, amount } = data;
-      const botSession = await prisma.botSession.findUnique({
-        where: {
-          id: id,
-        },
-        include: {
-          user: true,
-        },
-      });
-
-      if (botSession) {
-        let safeAmount = parseFloat(amount.replace(" ", "").replace(",", ""));
-        if (safeAmount) {
-          await prisma.botSession.update({
-            where: {
-              id: id,
-            },
-            data: {
-              currentAmount: safeAmount,
-            },
-          });
-
-          await prisma.betLogs.create({
-            data: {
-              betAmount: safeAmount,
-              user: {
-                connect: {
-                  id: botSession.user!.id,
-                },
-              },
-            },
-          });
-        }
-      }
-    });
+    },
   });
-
-  router.post("/stop", verifySession, async (req: Request, res: Response) => {
-    const email = res.locals.email;
-    const client = await prisma.botSession.findFirst({
-      where: {
-        user: {
-          email: email,
-        },
-      },
-    });
-    if (client) {
-      io.emit("stop_betting", { id: client.id });
-      await prisma.botSession.update({
-        where: {
-          id: client.id,
-        },
-        data: {
-          state: "INACTIVE",
-          currentAmount: 0,
-        },
-      });
-      return res.status(200).json({ message: "bot stopped" });
-    } else {
-      return res.status(404).json({ error: "Client not found" });
-    }
-  });
-
-  router.get("/amount", verifySession, async (req: Request, res: Response) => {
+  if (session) {
     return res.status(200).json({
       message: "current amount",
-      data: { amount: 0 },
+      data: {
+        amount: session.currentAmount,
+        profit: session.currentAmount - session.initialAmount,
+      },
     });
-    // const email = res.locals.email;
-    // const client = await prisma.botSession.findFirst({
-    //   where: {
-    //     user: {
-    //       email: email,
-    //     },
-    //   },
-    // });
-    // if (client) {
-    //   return res.status(200).json({
-    //     message: "current amount",
-    //     data: { amount: client.currentAmount },
-    //   });
-    // }
-    // return res.status(404).json({ error: "User has no running bet session" });
+  }
+  return res.status(404).json({ error: "User has no running bet session" });
+});
+
+router.post("/start", verifySession, async (req: Request, res: Response) => {
+  const email = res.locals.email;
+  const config = req.body as z.infer<typeof StartBotSchema>;
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email: email,
+    },
+
+    include: {
+      sportyProfile: true,
+    },
   });
-  router.post(
-    "/start",
-    verifySession,
-    validateSubscription([
-      "BASIC_NORMAL",
-      "BASIC_PRIME",
-      "CUSTOMIZED_NORMAL",
-      "CUSTOMIZED_PRIME",
-    ]),
-    async (req: Request, res: Response) => {
-      const email = res.locals.email;
 
-      const user = await prisma.user.findUnique({
-        where: {
-          email: email,
-        },
-
-        include: {
-          sportyProfile: true,
-        },
-      });
-
-      if (!user?.sportyProfile) {
-        return res
-          .status(400)
-          .json({ error: "user does not have a sporty profile" });
-      } else {
-        const availableClient = await getAvailableClient();
-        if (availableClient !== null) {
-          io.emit("start_betting", {
-            id: availableClient.id,
-            username: user.sportyProfile.phone,
-            password: user.sportyProfile.password,
-          });
-
-          await prisma.botSession.update({
-            where: {
-              id: availableClient.id,
-            },
-            data: {
-              state: "ACTIVE",
-              user: {
-                connect: {
-                  id: user.id,
-                },
-              },
-            },
-          });
-
-          return res.status(200).json({ message: "started bot" });
-        } else {
-          return res
-            .status(400)
-            .json({ error: "No Clients currently available" });
-        }
+  if (!user?.sportyProfile) {
+    return res
+      .status(400)
+      .json({ error: "user does not have a sporty profile" });
+  } else {
+    if (config.max_loss || config.risk) {
+      const validSubscriptions = [
+        "CUSTOMIZED_PRIME",
+        "CUSTOMIZED_NORMAL",
+      ] as Subscription[];
+      if (!validateSubscription(validSubscriptions, user.currentPlan)) {
+        return res.status(403).json({ error: `Subscription required` });
+      }
+    } else {
+      const validSubscriptions = "ALL";
+      if (!validateSubscription(validSubscriptions, user.currentPlan)) {
+        return res.status(403).json({ error: `Subscription required` });
       }
     }
-  );
+    await client.lPush(
+      "bet_queue",
+      JSON.stringify({
+        command: "start",
+        username: user.sportyProfile.phone,
+        password: user.sportyProfile.password,
+        max_loss: config.max_loss,
+        risk: config.risk,
+      })
+    );
 
-  router.post(
-    "/start/:max_loss",
-    verifySession,
-    validateSubscription(["CUSTOMIZED_NORMAL", "CUSTOMIZED_PRIME"]),
-    async (req: Request, res: Response) => {
-      const email = res.locals.email;
-
-      const user = await prisma.user.findUnique({
-        where: {
-          email: email,
+    await prisma.botSession.create({
+      data: {
+        user: {
+          connect: {
+            id: user.id,
+          },
         },
+        phone: user.sportyProfile.phone,
+        initialAmount: 0,
+        currentAmount: 0,
+      },
+    });
 
-        include: {
-          sportyProfile: true,
-        },
-      });
+    return res.status(200).json({ message: "started bot" });
+  }
+});
 
-      if (!user?.sportyProfile) {
-        return res
-          .status(400)
-          .json({ error: "user does not have a sporty profile" });
-      } else {
-        const availableClient = await getAvailableClient();
-        if (availableClient !== null) {
-          io.emit("start_betting", {
-            id: availableClient.id,
-            username: user.sportyProfile.phone,
-            password: user.sportyProfile.password,
-            config: {
-              max_loss: parseInt(req.params.max_loss),
-            },
-          });
-
-          await prisma.botSession.update({
-            where: {
-              id: availableClient.id,
-            },
-            data: {
-              state: "ACTIVE",
-              user: {
-                connect: {
-                  id: user.id,
-                },
-              },
-            },
-          });
-
-          return res.status(200).json({ message: "started bot" });
-        } else {
-          return res
-            .status(400)
-            .json({ error: "No Clients currently available" });
-        }
-      }
-    }
-  );
-
-  return router;
-};
+export default router;

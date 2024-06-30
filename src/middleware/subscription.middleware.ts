@@ -3,7 +3,7 @@ import { Subscription } from "../types/api";
 import prisma from "../utils/prisma";
 import { $Enums } from "@prisma/client";
 
-export function validateSubscription(
+export function validateSubscriptionMiddleware(
   validSubscriptions: $Enums.PaymentPlan[]
 ): RequestHandler {
   return async (req, res, next) => {

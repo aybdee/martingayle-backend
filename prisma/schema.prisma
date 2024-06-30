@@ -22,11 +22,6 @@ enum PaymentPlan {
   CUSTOMIZED_PRIME
 }
 
-enum BotState {
-  ACTIVE
-  INACTIVE
-}
-
 enum TransactionType {
   BOT_SESION
   BOT_SESSION_PAYMENT
@@ -77,11 +72,11 @@ model SportyProfile {
 }
 
 model BotSession {
-  id            String   @id
-  userId        Int?     @unique
-  state         BotState @default(INACTIVE)
-  currentAmount Float    @default(0)
-  user          User?    @relation(fields: [userId], references: [id])
+  phone         String @id
+  userId        Int?   @unique
+  initialAmount Float  @default(0)
+  currentAmount Float  @default(0)
+  user          User?  @relation(fields: [userId], references: [id])
 }
 
 model BetLogs {
