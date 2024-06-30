@@ -7,6 +7,7 @@ import z from "zod";
 import prisma from "../utils/prisma";
 import { ApiError } from "../types/error";
 import jwt from "jsonwebtoken";
+import { calculateReferralEarnings } from "../utils/stats";
 const router = Router();
 
 router.post("/", validateRequest(SignUpSchema), async (req, res) => {
@@ -40,6 +41,7 @@ router.post("/", validateRequest(SignUpSchema), async (req, res) => {
           },
         },
       });
+
       res.json({
         message: "User created successfully",
         data: {

@@ -89,7 +89,7 @@ router.post("/stop", verifySession, async (req: Request, res: Response) => {
     });
     return res.status(200).json({ message: "bot stopped" });
   } else {
-    return res.status(404).json({ error: "User has no running bot session" });
+    return res.status(404).json({ message: "User has no running bot session" });
   }
 });
 
@@ -111,7 +111,7 @@ router.get("/amount", verifySession, async (req: Request, res: Response) => {
       },
     });
   }
-  return res.status(404).json({ error: "User has no running bet session" });
+  return res.status(404).json({ message: "User has no running bet session" });
 });
 
 router.post("/start", verifySession, async (req: Request, res: Response) => {
@@ -125,8 +125,15 @@ router.post("/start", verifySession, async (req: Request, res: Response) => {
 
     include: {
       sportyProfile: true,
+      botSession: true,
     },
   });
+
+  if (user?.botSession) {
+    return res
+      .status(400)
+      .json({ message: "User already has a running bot session" });
+  }
 
   if (!user?.sportyProfile) {
     return res

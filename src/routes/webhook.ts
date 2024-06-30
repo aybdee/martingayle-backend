@@ -2,6 +2,7 @@ import { Router } from "express";
 import "express-async-errors";
 import crypto from "crypto";
 import prisma from "../utils/prisma";
+import { calculateReferralEarnings } from "../utils/stats";
 let router = Router();
 
 router.post("/", async (req, res) => {
@@ -27,6 +28,36 @@ router.post("/", async (req, res) => {
           currentPlan: plan,
         },
       });
+
+      let referredBy = await prisma.user.findFirst({
+        where: {
+          referrals: {
+            some: {
+              email: email,
+            },
+          },
+        },
+        include: {
+          referrals: true,
+        },
+      });
+
+      if (referredBy) {
+        await prisma.user.update({
+          where: {
+            id: referredBy.id,
+          },
+          data: {
+            StatsProfile: {
+              update: {
+                referralEarnings: calculateReferralEarnings(referredBy, [
+                  ...referredBy.referrals,
+                ]),
+              },
+            },
+          },
+        });
+      }
       // Create a new worker instance
     } else if (eventData.event == "subscription.disable") {
       let email = eventData.data.customer.email;
@@ -39,6 +70,38 @@ router.post("/", async (req, res) => {
           currentPlan: "FREE",
         },
       });
+
+      let referredBy = await prisma.user.findFirst({
+        where: {
+          referrals: {
+            some: {
+              email: email,
+            },
+          },
+        },
+        include: {
+          referrals: true,
+        },
+      });
+
+      if (referredBy) {
+        await prisma.user.update({
+          where: {
+            id: referredBy.id,
+          },
+          data: {
+            StatsProfile: {
+              update: {
+                referralEarnings: calculateReferralEarnings(referredBy, [
+                  ...referredBy.referrals,
+                ]),
+              },
+            },
+          },
+        });
+      }
+    } else {
+      res.sendStatus(200);
     }
   }
 });

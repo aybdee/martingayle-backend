@@ -28,4 +28,17 @@ export function calculateReferralEarnings(user: User, referrals: User[]) {
     ["BASIC_PRIME", "CUSTOMIZED_PRIME"],
     user.currentPlan
   );
+
+  const SubPriceMap = {
+    FREE: 0,
+    BASIC_NORMAL: 15000,
+    CUSTOMIZED_NORMAL: 30000,
+    BASIC_PRIME: 25000,
+    CUSTOMIZED_PRIME: 50000,
+  };
+
+  return referrals.reduce((acc, referral) => {
+    let price = SubPriceMap[referral.currentPlan];
+    return acc + price * 0.1;
+  }, 0);
 }
