@@ -96,23 +96,23 @@ router.get("/bets/:logNum", verifySession, async (req, res) => {
       date: bet.createdAt,
     };
   });
-  bets_data = [
-    ...bets_data,
-    ...[
-      {
-        amount: 1000,
-        date: new Date(),
-      },
-      {
-        amount: 1000,
-        date: new Date(),
-      },
-      {
-        amount: 1000,
-        date: new Date(),
-      },
-    ],
-  ];
+  // bets_data = [
+  //   ...bets_data,
+  //   ...[
+  //     {
+  //       amount: 1000,
+  //       date: new Date(),
+  //     },
+  //     {
+  //       amount: 1000,
+  //       date: new Date(),
+  //     },
+  //     {
+  //       amount: 1000,
+  //       date: new Date(),
+  //     },
+  //   ],
+  // ];
 
   res.json({
     message: "bet logs",
