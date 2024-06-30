@@ -42,14 +42,14 @@ export async function pollQueueUpdates() {
 
         const session = await prisma.botSession.findUnique({
           where: {
-            phone: data.phone,
+            phone: data.username,
           },
         });
 
         if (session?.initialAmount == 0) {
           await prisma.botSession.update({
             where: {
-              phone: data.phone,
+              phone: data.username,
             },
             data: {
               initialAmount: data.amount,
@@ -59,7 +59,7 @@ export async function pollQueueUpdates() {
         } else {
           await prisma.botSession.update({
             where: {
-              phone: data.phone,
+              phone: data.username,
             },
             data: {
               currentAmount: data.amount,
