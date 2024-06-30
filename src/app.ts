@@ -19,9 +19,6 @@ const PORT = 4000;
 dotenv.config();
 
 const initServer = async () => {
-  await deleteAllBotSessions();
-  await spinDownWorkers();
-
   const app = express();
   client.connect();
 

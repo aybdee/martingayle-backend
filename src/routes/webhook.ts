@@ -2,7 +2,6 @@ import { Router } from "express";
 import "express-async-errors";
 import crypto from "crypto";
 import prisma from "../utils/prisma";
-import { createWorkerInstance, deleteWorkerInstance } from "../utils/render";
 let router = Router();
 
 router.post("/", async (req, res) => {
@@ -28,9 +27,7 @@ router.post("/", async (req, res) => {
           currentPlan: plan,
         },
       });
-
       // Create a new worker instance
-      await createWorkerInstance();
     } else if (eventData.event == "subscription.disable") {
       let email = eventData.data.customer.email;
       res.sendStatus(200);
@@ -42,7 +39,6 @@ router.post("/", async (req, res) => {
           currentPlan: "FREE",
         },
       });
-      await deleteWorkerInstance();
     }
   }
 });
