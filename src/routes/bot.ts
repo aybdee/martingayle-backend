@@ -9,6 +9,8 @@ import prisma from "../utils/prisma";
 import { z } from "zod";
 import { Subscription } from "../types/api";
 import { client } from "../utils/redis";
+import { calculateStats } from "../utils/stats";
+import { $Enums } from "@prisma/client";
 const router = Router();
 
 router.post("/stop", verifySession, async (req: Request, res: Response) => {
@@ -20,6 +22,7 @@ router.post("/stop", verifySession, async (req: Request, res: Response) => {
     },
     include: {
       botSession: true,
+      StatsProfile: true,
     },
   });
 
@@ -34,17 +37,50 @@ router.post("/stop", verifySession, async (req: Request, res: Response) => {
       })
     );
 
-    // await prisma.user.update({
-    //   where: {
-    //     email: email,
-    //   },
-    //   data: {
-    //     StatsProfile:{
-    //       update:
+    if (user.StatsProfile) {
+      let stats = calculateStats(user, user.StatsProfile, session);
+      let transactions: {
+        amount: number;
+        type: $Enums.TransactionType;
+        status: $Enums.TransactionStatus;
+      }[] = [
+        {
+          amount: Math.max(session.currentAmount - session.initialAmount, 0),
+          type: $Enums.TransactionType.BOT_SESION,
+          status: "VERIFIED",
+        },
+      ];
 
-    //     }
-    //   },
-    // });
+      if (
+        !validateSubscription(
+          ["CUSTOMIZED_PRIME", "BASIC_PRIME"],
+          user.currentPlan
+        )
+      ) {
+        transactions.push({
+          amount: session.initialAmount,
+          type: $Enums.TransactionType.BOT_SESSION_PAYMENT,
+          status: "PENDING",
+        });
+      }
+      await prisma.user.update({
+        where: {
+          email: email,
+        },
+        data: {
+          StatsProfile: {
+            update: {
+              pendingSplit: stats.pendingSplit,
+              dailyProfit: stats.dailyProfit,
+            },
+          },
+
+          TransactionLogs: {
+            create: transactions,
+          },
+        },
+      });
+    }
 
     await prisma.botSession.delete({
       where: {

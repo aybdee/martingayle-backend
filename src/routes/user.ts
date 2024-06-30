@@ -41,6 +41,7 @@ router.get("/", verifySession, async (req, res) => {
     res.json({
       message: "stats",
       data: {
+        username: user?.username,
         plan: user?.currentPlan,
         email: user?.email,
         status: user?.accountStatus,
