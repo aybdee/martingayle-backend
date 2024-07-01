@@ -58,7 +58,7 @@ router.post("/stop", verifySession, async (req: Request, res: Response) => {
         )
       ) {
         transactions.push({
-          amount: session.initialAmount,
+          amount: (session.currentAmount - session.initialAmount) * 0.1,
           type: $Enums.TransactionType.BOT_SESSION_PAYMENT,
           status: "PENDING",
         });

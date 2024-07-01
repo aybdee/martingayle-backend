@@ -54,8 +54,8 @@ router.get("/", verifySession, async (req, res) => {
             }
           : {},
         stats: {
-          dailyProfit: stats.dailyProfit,
-          pendingSplit: stats.pendingSplit,
+          dailyProfit: Math.max(stats.dailyProfit, 0),
+          pendingSplit: Math.max(stats.pendingSplit, 0),
           referralEarnings: stats.referralEarnings,
         },
       },
