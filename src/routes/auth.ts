@@ -23,7 +23,7 @@ router.post("/", validateRequest(SignUpSchema), async (req, res) => {
         username: data.referral,
       },
     });
-    if (!referredBy) {
+    if (!referredBy || data.referral === "super") {
       throw new ApiError("Referral does not exist", 400);
     } else {
       let hashedPassword = await bcrypt.hash(data.password, 10);
