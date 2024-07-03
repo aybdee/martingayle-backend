@@ -38,30 +38,6 @@ router.get("/transactions/:logNum", verifySession, async (req, res) => {
     };
   });
 
-  transaction_data = [
-    ...transaction_data,
-    ...[
-      {
-        amount: 1000,
-        type: $Enums.TransactionType.BOT_SESION,
-        date: new Date(),
-        status: $Enums.TransactionStatus.VERIFIED,
-      },
-      {
-        amount: 1000,
-        type: $Enums.TransactionType.BOT_SESSION_PAYMENT,
-        date: new Date(),
-        status: $Enums.TransactionStatus.PENDING,
-      },
-      {
-        amount: 1000,
-        type: $Enums.TransactionType.REFERRAL_INCOMING,
-        date: new Date(),
-        status: $Enums.TransactionStatus.FAILED,
-      },
-    ],
-  ];
-
   res.json({
     message: "transaction logs",
     data: transaction_data,
