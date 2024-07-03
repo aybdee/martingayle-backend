@@ -2,7 +2,7 @@ import prisma from "../utils/prisma";
 import { commandOptions } from "redis";
 import { createClient } from "redis";
 
-const REDIS_URL = process.env.REDIS_URL;
+const REDIS_URL = process.env.REDISCLOUD_URL;
 
 const client = createClient({
   url: REDIS_URL,
@@ -15,7 +15,7 @@ export async function pollQueueUpdates() {
     const update = await client.blPop(
       commandOptions({ isolated: true }),
       "update_queue",
-      0
+      0,
     );
     if (update) {
       const data = JSON.parse(update.element);
