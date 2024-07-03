@@ -25,6 +25,7 @@ export async function initiatePaystackPayment(
     {
       email: email,
       currency: "NGN",
+      callback_url: "https://gaylebot.vercel.app/dashboard",
       amount: amount,
       plan: code,
       metadata: {
