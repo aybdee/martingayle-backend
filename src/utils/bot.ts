@@ -15,7 +15,7 @@ export async function pollQueueUpdates() {
     const update = await client.blPop(
       commandOptions({ isolated: true }),
       "update_queue",
-      0,
+      0
     );
     if (update) {
       const data = JSON.parse(update.element);
@@ -40,31 +40,34 @@ export async function pollQueueUpdates() {
           },
         });
 
-        const session = await prisma.botSession.findUnique({
-          where: {
-            phone: data.username,
-          },
-        });
-
-        if (session?.initialAmount == 0) {
-          await prisma.botSession.update({
+        try {
+          const session = await prisma.botSession.findUnique({
             where: {
               phone: data.username,
             },
-            data: {
-              initialAmount: data.amount,
-              currentAmount: data.amount,
-            },
           });
-        } else {
-          await prisma.botSession.update({
-            where: {
-              phone: data.username,
-            },
-            data: {
-              currentAmount: data.amount,
-            },
-          });
+          if (session?.initialAmount == 0) {
+            await prisma.botSession.update({
+              where: {
+                phone: data.username,
+              },
+              data: {
+                initialAmount: data.amount,
+                currentAmount: data.amount,
+              },
+            });
+          } else {
+            await prisma.botSession.update({
+              where: {
+                phone: data.username,
+              },
+              data: {
+                currentAmount: data.amount,
+              },
+            });
+          }
+        } catch (e) {
+          console.log("dropped update for user", data.username);
         }
       }
     }
