@@ -15,7 +15,7 @@ import { deleteAllBotSessions } from "./utils/prisma";
 import { pollQueueUpdates } from "./utils/bot";
 import { client } from "./utils/redis";
 
-const PORT = 4000;
+const PORT = process.env.PORT ?? 4000;
 dotenv.config();
 
 const initServer = async () => {
