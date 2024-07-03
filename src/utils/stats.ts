@@ -9,7 +9,7 @@ export function calculateStats(
   const profit = session.currentAmount - session.initialAmount;
   const lastUpdate = stats.updatedAt;
   let isSameDay = false;
-  let userMustSplit = validateSubscription(
+  let userMustSplit = !validateSubscription(
     ["BASIC_PRIME", "CUSTOMIZED_PRIME"],
     user.currentPlan
   );
