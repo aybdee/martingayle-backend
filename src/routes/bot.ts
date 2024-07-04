@@ -30,9 +30,8 @@ router.post("/stop", verifySession, async (req: Request, res: Response) => {
 
   if (session) {
     await client.lPush(
-      "bet_queue",
+      "stop_queue",
       JSON.stringify({
-        command: "stop",
         username: session.phone,
       })
     );
