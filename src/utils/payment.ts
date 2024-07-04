@@ -18,7 +18,7 @@ export async function initiatePaystackPayment(
   email: string,
   plan: keyof typeof PAYMENT_PLANS
 ) {
-  const { code, amount } = PAYMENT_PLANS_TEST[plan];
+  const { code, amount } = PAYMENT_PLANS[plan];
 
   const response = await axios.post(
     "https://api.paystack.co/transaction/initialize",
@@ -34,7 +34,7 @@ export async function initiatePaystackPayment(
     },
     {
       headers: {
-        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY_MAIN}`,
       },
     }
   );
