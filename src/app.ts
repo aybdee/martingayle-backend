@@ -10,7 +10,6 @@ import { errorHandler } from "./middleware/error.middleware";
 import botRouter from "./routes/bot";
 import cors from "cors";
 import dotenv from "dotenv";
-import { spinDownWorkers } from "./utils/render";
 import { deleteAllBotSessions } from "./utils/prisma";
 import { pollQueueUpdates } from "./utils/bot";
 import { client } from "./utils/redis";

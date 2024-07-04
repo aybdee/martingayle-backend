@@ -7,12 +7,10 @@ import { PaySchema } from "../schemas/payment";
 import { z } from "zod";
 import { SportyProfile } from "../schemas/sporty";
 import { initiatePaystackPayment } from "../utils/payment";
-import { createWorkerInstance } from "../utils/render";
 const router = Router();
 
 router.get("/", verifySession, async (req, res) => {
   const email = res.locals.email;
-  await createWorkerInstance();
   const user = await prisma.user.findUnique({
     where: {
       email: email,
