@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const PAYMENT_PLANS = {
-  BASIC_NORMAL: { code: "PLN_xk7biqljij98mz3", amount: 15000 },
+  BASIC_NORMAL: { code: "PLN_v4qb80teat5szkn", amount: 15000 },
   CUSTOMIZED_NORMAL: { code: "PLN_9akv9f8l7nskeae", amount: 25000 },
   BASIC_PRIME: { code: "PLN_sgzcvopxtr8u50t", amount: 30000 },
   CUSTOMIZED_PRIME: { code: "PLN_9l7seqnobpqryde", amount: 50000 },
