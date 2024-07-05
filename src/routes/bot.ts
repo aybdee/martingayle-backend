@@ -116,6 +116,7 @@ router.get("/amount", verifySession, async (req: Request, res: Response) => {
 router.post("/start", verifySession, async (req: Request, res: Response) => {
   const email = res.locals.email;
   const config = req.body as z.infer<typeof StartBotSchema>;
+  console.log(config);
 
   const user = await prisma.user.findUnique({
     where: {
