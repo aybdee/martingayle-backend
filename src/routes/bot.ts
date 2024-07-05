@@ -139,7 +139,7 @@ router.post("/start", verifySession, async (req: Request, res: Response) => {
       .status(400)
       .json({ error: "user does not have a sporty profile" });
   } else {
-    if (config.max_loss || config.risk) {
+    if (config.max_loss || config.lot_size) {
       const validSubscriptions = [
         "CUSTOMIZED_PRIME",
         "CUSTOMIZED_NORMAL",
@@ -156,11 +156,10 @@ router.post("/start", verifySession, async (req: Request, res: Response) => {
     await client.lPush(
       "bet_queue",
       JSON.stringify({
-        command: "start",
         username: user.sportyProfile.phone,
         password: user.sportyProfile.password,
         max_loss: config.max_loss,
-        risk: config.risk,
+        lot_size: config.lot_size,
       })
     );
 
