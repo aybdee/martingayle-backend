@@ -7,7 +7,7 @@ let router = Router();
 
 router.post("/", async (req, res) => {
   const hash = crypto
-    .createHmac("sha512", process.env.PAYSTACK_SECRET_KEY!)
+    .createHmac("sha512", process.env.PAYSTACK_SECRET_KEY_MAIN!)
     .update(JSON.stringify(req.body))
     .digest("hex");
 
