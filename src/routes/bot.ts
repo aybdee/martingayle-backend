@@ -140,13 +140,14 @@ router.post("/start", verifySession, async (req: Request, res: Response) => {
       .status(400)
       .json({ error: "user does not have a sporty profile" });
   } else {
-    if (config.max_loss || config.lot_size) {
+    if (config.max_risk || config.lot_size) {
       const validSubscriptions = [
         "CUSTOMIZED_PRIME",
         "CUSTOMIZED_NORMAL",
       ] as Subscription[];
       if (!validateSubscription(validSubscriptions, user.currentPlan)) {
-        return res.status(403).json({ error: `Subscription required` });
+        config.max_risk = 16000;
+        config.lot_size = 10;
       }
     } else {
       const validSubscriptions = "ALL";
@@ -159,7 +160,7 @@ router.post("/start", verifySession, async (req: Request, res: Response) => {
       JSON.stringify({
         username: user.sportyProfile.phone,
         password: user.sportyProfile.password,
-        max_loss: config.max_loss,
+        max_risk: config.max_risk,
         lot_size: config.lot_size,
       })
     );
