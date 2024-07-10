@@ -8,6 +8,25 @@ const client = createClient({
   url: REDIS_URL,
 });
 
+export async function pollLogUpdates() {
+  console.log("polling log updates");
+  while (true) {
+    const log = await client.blPop(
+      commandOptions({ isolated: true }),
+      "log_queue",
+      0
+    );
+
+    if (log) {
+      await prisma.analysisLogs.create({
+        data: {
+          coinFace: log.element,
+        },
+      });
+    }
+  }
+}
+
 export async function pollQueueUpdates() {
   console.log("polling queue updates");
   await client.connect();
