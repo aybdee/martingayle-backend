@@ -4,17 +4,23 @@ import { createClient } from "redis";
 
 const REDIS_URL = process.env.REDISCLOUD_URL;
 
-const client = createClient({
+const logClient = createClient({
+  url: REDIS_URL,
+});
+
+//have two clients since they're blocking
+const updateClient = createClient({
   url: REDIS_URL,
 });
 
 export async function pollLogUpdates() {
   console.log("polling log updates");
+  await logClient.connect();
   while (true) {
-    const log = await client.blPop(
+    const log = await logClient.blPop(
       commandOptions({ isolated: true }),
       "log_queue",
-      0
+      0,
     );
 
     if (log) {
@@ -29,12 +35,12 @@ export async function pollLogUpdates() {
 
 export async function pollQueueUpdates() {
   console.log("polling queue updates");
-  await client.connect();
+  await updateClient.connect();
   while (true) {
-    const update = await client.blPop(
+    const update = await updateClient.blPop(
       commandOptions({ isolated: true }),
       "update_queue",
-      0
+      0,
     );
     if (update) {
       const data = JSON.parse(update.element);
