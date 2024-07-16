@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "PaymentPlan" ADD VALUE 'AUTOMATED_PRIME';

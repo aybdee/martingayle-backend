@@ -11,84 +11,95 @@ import { Subscription } from "../types/api";
 import { client } from "../utils/redis";
 import { calculateStats } from "../utils/stats";
 import { $Enums } from "@prisma/client";
+import { stopBotSession } from "../utils/bot";
 const router = Router();
 
-router.post("/stop", verifySession, async (req: Request, res: Response) => {
-  const email = res.locals.email;
+router.post(
+  "/scan/start",
+  verifySession,
+  async (req: Request, res: Response) => {
+    const email = res.locals.email;
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
 
-  const user = await prisma.user.findUnique({
-    where: {
-      email: email,
-    },
-    include: {
-      botSession: true,
-      StatsProfile: true,
-    },
-  });
-
-  const session = user?.botSession;
-
-  if (session) {
-    await client.lPush(
-      "stop_queue",
-      JSON.stringify({
-        username: session.phone,
-      })
-    );
-
-    if (user.StatsProfile) {
-      let stats = calculateStats(user, user.StatsProfile, session);
-      let transactions: {
-        amount: number;
-        type: $Enums.TransactionType;
-        status: $Enums.TransactionStatus;
-      }[] = [
-        {
-          amount: Math.max(session.currentAmount - session.initialAmount, 0),
-          type: $Enums.TransactionType.BOT_SESION,
-          status: "VERIFIED",
-        },
-      ];
-
-      if (
-        !validateSubscription(
-          ["CUSTOMIZED_PRIME", "BASIC_PRIME"],
-          user.currentPlan
-        )
-      ) {
-        transactions.push({
-          amount: (session.currentAmount - session.initialAmount) * 0.1,
-          type: $Enums.TransactionType.BOT_SESSION_PAYMENT,
-          status: "PENDING",
-        });
-      }
+    if (user?.currentPlan == $Enums.PaymentPlan.AUTOMATED_PRIME) {
       await prisma.user.update({
         where: {
           email: email,
         },
         data: {
-          StatsProfile: {
-            update: {
-              pendingSplit: stats.pendingSplit,
-              dailyProfit: stats.dailyProfit,
-            },
-          },
-
-          TransactionLogs: {
-            create: transactions,
-          },
+          isScanning: true,
         },
       });
+      return res.status(200).json({ message: "scan started" });
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Automated prime subscription required" });
     }
+  },
+);
 
-    await prisma.botSession.delete({
+router.get(
+  "/scan/status",
+  verifySession,
+  async (req: Request, res: Response) => {
+    const email = res.locals.email;
+    const user = await prisma.user.findUnique({
       where: {
-        phone: session.phone,
+        email: email,
       },
     });
+
+    if (user?.currentPlan == $Enums.PaymentPlan.AUTOMATED_PRIME) {
+      return res.status(200).json({ isScanning: user.isScanning });
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Automated prime subscription required" });
+    }
+  },
+);
+
+router.post(
+  "/scan/stop",
+  verifySession,
+  async (req: Request, res: Response) => {
+    const email = res.locals.email;
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+
+    if (user?.currentPlan == $Enums.PaymentPlan.AUTOMATED_PRIME) {
+      await prisma.user.update({
+        where: {
+          email: email,
+        },
+        data: {
+          isScanning: false,
+        },
+      });
+      return res.status(200).json({ message: "scan stopped" });
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Automated prime subscription required" });
+    }
+  },
+);
+
+router.post("/stop", verifySession, async (req: Request, res: Response) => {
+  const email = res.locals.email;
+  let result = await stopBotSession(email);
+  if (result) {
     return res.status(200).json({ message: "bot stopped" });
   } else {
-    return res.status(404).json({ message: "User has no running bot session" });
+    return res.status(400).json({ message: "bot not running" });
   }
 });
 
@@ -162,7 +173,7 @@ router.post("/start", verifySession, async (req: Request, res: Response) => {
         password: user.sportyProfile.password,
         max_risk: config.max_risk,
         lot_size: config.lot_size,
-      })
+      }),
     );
 
     await prisma.botSession.create({

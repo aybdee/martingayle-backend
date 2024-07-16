@@ -5,6 +5,7 @@ const PAYMENT_PLANS = {
   CUSTOMIZED_NORMAL: { code: "PLN_9akv9f8l7nskeae", amount: 25000 },
   BASIC_PRIME: { code: "PLN_sgzcvopxtr8u50t", amount: 30000 },
   CUSTOMIZED_PRIME: { code: "PLN_9l7seqnobpqryde", amount: 50000 },
+  AUTOMATED_PRIME: { code: "PLN_aizkrv8sjjztm6p", amount: 50000 },
 };
 
 const PAYMENT_PLANS_TEST = {
@@ -16,7 +17,7 @@ const PAYMENT_PLANS_TEST = {
 
 export async function initiatePaystackPayment(
   email: string,
-  plan: keyof typeof PAYMENT_PLANS
+  plan: keyof typeof PAYMENT_PLANS,
 ) {
   const { code, amount } = PAYMENT_PLANS[plan];
 
@@ -36,7 +37,7 @@ export async function initiatePaystackPayment(
       headers: {
         Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY_MAIN}`,
       },
-    }
+    },
   );
 
   return response.data;

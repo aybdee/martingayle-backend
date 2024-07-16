@@ -43,6 +43,7 @@ router.get("/", verifySession, async (req, res) => {
         plan: user?.currentPlan,
         email: user?.email,
         status: user?.accountStatus,
+        isScanning: user?.isScanning,
         pendingPayment: user?.pendingPayment,
         paymentDeadline: user?.pendingExpiry ?? "NONE",
         sportyProfile: user?.sportyProfile
@@ -162,7 +163,7 @@ router.post(
     res.json({
       message: "Sporty Profile updated successfully",
     });
-  }
+  },
 );
 
 router.post(
@@ -181,7 +182,7 @@ router.post(
         url: paymentResponse.data.authorization_url,
       },
     });
-  }
+  },
 );
 
 export default router;

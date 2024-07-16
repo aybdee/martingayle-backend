@@ -21,6 +21,7 @@ enum PaymentPlan {
   CUSTOMIZED_NORMAL
   BASIC_PRIME
   CUSTOMIZED_PRIME
+  AUTOMATED_PRIME
 }
 
 enum TransactionType {
@@ -39,6 +40,11 @@ enum AccountStatus {
   ACTIVE
   PENDING
   SUSPENDED
+}
+
+enum UserRoles {
+  ADMIN
+  USER
 }
 
 model User {
@@ -62,6 +68,8 @@ model User {
   accountStatus   AccountStatus     @default(ACTIVE)
   pendingPayment  Float             @default(0)
   pendingExpiry   DateTime?
+  role            UserRoles         @default(USER)
+  isScanning      Boolean           @default(false)
 }
 
 model SportyProfile {

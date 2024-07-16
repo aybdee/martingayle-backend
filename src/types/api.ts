@@ -3,4 +3,5 @@ export type Subscription =
   | "BASIC_NORMAL"
   | "CUSTOMIZED_NORMAL"
   | "BASIC_PRIME"
-  | "CUSTOMIZED_PRIME";
+  | "CUSTOMIZED_PRIME"
+  | "AUTOMATED_PRIME";

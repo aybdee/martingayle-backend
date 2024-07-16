@@ -5,11 +5,10 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET as string;
-
 export const verifySession = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const token = req.header("Authorization");
   if (token && token?.startsWith("Bearer ")) {
@@ -22,6 +21,25 @@ export const verifySession = async (
     } catch (err) {
       throw new ApiError("Access Denied", 401);
     }
+  } else {
+    throw new ApiError("Access Denied", 401);
+  }
+};
+
+export const verifyAdminSession = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  let email = res.locals.email;
+  const user = await prisma.user.findUnique({
+    where: {
+      email: email,
+    },
+  });
+
+  if (user?.role === "ADMIN") {
+    next();
   } else {
     throw new ApiError("Access Denied", 401);
   }

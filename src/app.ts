@@ -11,7 +11,7 @@ import botRouter from "./routes/bot";
 import cors from "cors";
 import dotenv from "dotenv";
 import { deleteAllBotSessions } from "./utils/prisma";
-import { pollLogUpdates, pollQueueUpdates } from "./utils/bot";
+import { pollDrawDowns, pollLogUpdates, pollQueueUpdates } from "./utils/bot";
 import { client } from "./utils/redis";
 
 const PORT = process.env.PORT ?? 4000;
@@ -36,7 +36,11 @@ const initServer = async () => {
     console.log(`Listening on port ${PORT}`);
   });
 
-  await Promise.all([pollQueueUpdates(), pollLogUpdates()]);
+  await Promise.all([
+    pollQueueUpdates(),
+    pollLogUpdates(),
+    pollDrawDowns(3, 0.1),
+  ]);
 };
 
 initServer();
