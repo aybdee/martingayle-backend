@@ -39,7 +39,7 @@ const initServer = async () => {
   await Promise.all([
     pollQueueUpdates(),
     pollLogUpdates(),
-    pollDrawDowns(3, 0.1),
+    pollDrawDowns(1, 0.1),
   ]);
 };
 
